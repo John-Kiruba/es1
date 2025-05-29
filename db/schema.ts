@@ -24,8 +24,19 @@ export const customerBankDetails = sqliteTable("customer_bank_details", {
     .references(() => customerTable.id),
 });
 
+export const ordersTable = sqliteTable("orders", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orderNumber: text("order_number").unique().notNull(),
+  orderDate: text("order_date").notNull(),
+  status: text("status").notNull(),
+  customerId: integer("cust_id")
+    .notNull()
+    .references(() => customerTable.id),
+});
+
 export const customerRelations = relations(customerTable, ({ many }) => ({
   bankDetails: many(customerBankDetails),
+  orders: many(ordersTable),
 }));
 
 export const bankDetailsRelations = relations(
@@ -38,10 +49,9 @@ export const bankDetailsRelations = relations(
   })
 );
 
-export const ordersTable = sqliteTable("orders", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  orderNumber: text("order_number").unique().notNull(),
-  customerId: integer("cust_id")
-    .notNull()
-    .references(() => customerTable.id),
-});
+export const orderRelations = relations(ordersTable, ({ one }) => ({
+  customer: one(customerTable, {
+    fields: [ordersTable.customerId],
+    references: [customerTable.id],
+  }),
+}));

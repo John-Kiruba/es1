@@ -7,11 +7,13 @@ import {
     CarouselItem,
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import { Button } from "@/components/ui/button";
 
 export default function HeroSlider({ items }: { items: any }) {
     return (
-        <div className="w-full p-3 flex items-center justify-center bg-white">
-            <div className="mx-auto w-full max-w-7xl px-4">
+        <div className="flex items-center justify-center w-full p-3 bg-white">
+            <div className="w-full px-4 mx-auto max-w-7xl">
                 <Carousel
                     className="w-full"
                     opts={{
@@ -39,12 +41,10 @@ export default function HeroSlider({ items }: { items: any }) {
     );
 }
 
-
-
 export function ItemsCard({ item }: { item: any }) {
     return (
-        <Card className="bg-gray-600 overflow-hidden h-full p-4">
-            <CardContent className="flex flex-col items-center justify-center h-full space-y-2">
+        <Card className="h-full p-4 overflow-hidden bg-gray-600">
+            <CardContent className="flex flex-col items-center justify-center h-full space-y-2 ">
                 <Image
                     src={item.images[0]}
                     width={500}
@@ -53,11 +53,39 @@ export function ItemsCard({ item }: { item: any }) {
                     className="object-cover object-center rounded"
                 />
                 <span className="text-xl font-semibold text-neutral-100">
-                    {item.title}{" "}
-                    <span className="text-yellow-300">${item.price}</span>
+                    {item.title} <span className="text-yellow-300">${item.price}</span>
                 </span>
+                <Description item={item} />
             </CardContent>
-        </Card>
 
+        </Card>
+    );
+}
+
+
+function Description({ item }: { item: any }) {
+    return (
+        <>
+            <Drawer>
+                <DrawerTrigger>Buy Now</DrawerTrigger>
+                <DrawerContent>
+                    <DrawerHeader>
+                        <DrawerTitle>{item.title}</DrawerTitle>
+                        <DrawerDescription>{item.description}</DrawerDescription>
+                    </DrawerHeader>
+                    <DrawerFooter>
+                        <Button>Buy</Button>
+                        <DrawerClose>
+                            <Button variant="outline">Cancel</Button>
+                        </DrawerClose>
+                    </DrawerFooter>
+                </DrawerContent>
+                {/* <div className="flex flex-col justify-between border-t border-neutral-200 bg-gray-800/70">
+                    <p className="text-neutral-200"></p>
+
+                    <button className="p-2 text-white border">Buy now </button>
+                </div> */}
+            </Drawer>
+        </>
     )
 }
