@@ -7,12 +7,25 @@ import {
     CarouselItem,
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import {
+    Drawer,
+    DrawerClose,
+    DrawerContent,
+    DrawerDescription,
+    DrawerFooter,
+    DrawerHeader,
+    DrawerTitle,
+    DrawerTrigger,
+} from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
+import { InfoIcon } from "lucide-react";
+import { useState } from "react";
+import { CartProvider, useCart } from "../../context/cart-context";
+import { Product } from "@/app/types/product-type";
 
 export default function HeroSlider({ items }: { items: any }) {
     return (
-        <div className="flex items-center justify-center w-full p-3 bg-white">
+        <div className="flex items-center justify-center w-full p-3 bg-white ">
             <div className="w-full px-4 mx-auto max-w-7xl">
                 <Carousel
                     className="w-full"
@@ -41,10 +54,20 @@ export default function HeroSlider({ items }: { items: any }) {
     );
 }
 
-export function ItemsCard({ item }: { item: any }) {
+export function ItemsCard({ item }: { item: Product }) {
+    const { cart, setCart } = useCart();
+    const addToCart = (product: Product) => {
+        setCart((prev) => ({
+            ...prev,
+            [product.id]: prev[product.id]
+                ? [prev[product.id][0] + 1, product]
+                : [1, product],
+        }));
+    };
+
     return (
-        <Card className="h-full p-4 overflow-hidden bg-gray-600">
-            <CardContent className="flex flex-col items-center justify-center h-full space-y-2 ">
+        <Card className="relative h-full p-4 overflow-hidden  bg-neutral-50">
+            <CardContent className=" flex flex-col items-center justify-center h-full space-y-2 ">
                 <Image
                     src={item.images[0]}
                     width={500}
@@ -52,40 +75,37 @@ export function ItemsCard({ item }: { item: any }) {
                     alt={item.title}
                     className="object-cover object-center rounded"
                 />
-                <span className="text-xl font-semibold text-neutral-100">
+                <span className="text-xl font-semibold text-neutral-800 ">
                     {item.title} <span className="text-yellow-300">${item.price}</span>
                 </span>
-                <Description item={item} />
             </CardContent>
-
+            <div className="absolute top-3 right-3">
+                <Description item={item} />
+            </div>
+            <Button onClick={() => addToCart(item)}>Add to cart</Button>
         </Card>
     );
 }
 
-
-function Description({ item }: { item: any }) {
+function Description({ item }: { item: Product }) {
     return (
-        <>
-            <Drawer>
-                <DrawerTrigger>Buy Now</DrawerTrigger>
-                <DrawerContent>
-                    <DrawerHeader>
-                        <DrawerTitle>{item.title}</DrawerTitle>
-                        <DrawerDescription>{item.description}</DrawerDescription>
-                    </DrawerHeader>
-                    <DrawerFooter>
-                        <Button>Buy</Button>
-                        <DrawerClose>
-                            <Button variant="outline">Cancel</Button>
-                        </DrawerClose>
-                    </DrawerFooter>
-                </DrawerContent>
-                {/* <div className="flex flex-col justify-between border-t border-neutral-200 bg-gray-800/70">
-                    <p className="text-neutral-200"></p>
-
-                    <button className="p-2 text-white border">Buy now </button>
-                </div> */}
-            </Drawer>
-        </>
-    )
+        <Drawer>
+            <DrawerTrigger>
+                {" "}
+                <InfoIcon className="size-8 text-gray-500 hover:text-gray-800 transition-colors ease-in-out cursor-pointer" />
+            </DrawerTrigger>
+            <DrawerContent>
+                <DrawerHeader>
+                    <DrawerTitle>{item.title}</DrawerTitle>
+                    <DrawerDescription>{item.description}</DrawerDescription>
+                </DrawerHeader>
+                <DrawerFooter>
+                    <Button>Buy</Button>
+                    <DrawerClose asChild>
+                        <Button variant="outline">Cancel</Button>
+                    </DrawerClose>
+                </DrawerFooter>
+            </DrawerContent>
+        </Drawer>
+    );
 }
