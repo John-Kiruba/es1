@@ -1,9 +1,8 @@
 "use client";
 
 import { useCart } from "../../context/cart-context";
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button";
+import es1 from "@/public/es1logo.jpg";
 import {
     Sheet,
     SheetClose,
@@ -13,7 +12,7 @@ import {
     SheetHeader,
     SheetTitle,
     SheetTrigger,
-} from "@/components/ui/sheet"
+} from "@/components/ui/sheet";
 import Image from "next/image";
 export default function Navbar() {
     const { cart } = useCart();
@@ -22,14 +21,14 @@ export default function Navbar() {
         <nav className="border-b-2 border-neutral-200 h-16 w-full">
             <div className="flex items-center justify-between h-full mx-5">
                 <div className="flex gap-4 text-xl ">
-                    <button>Logo</button>
+                    <button>
+                        <Image src={es1} alt="esalesone logo" width={40} height={40} className="rounded-full object-cover" />
+                    </button>
                     <h2 className="italic">esalesone</h2>
                 </div>
-                <div className=" flex items-center gap-4 font-semibold ">
+                <div className="flex items-center gap-4 font-semibold">
                     <CartButtonProvider>
-                        <button
-
-                            className="cursor-pointer  relative border-2 border-neutral-200 p-2 px-3 rounded-lg ">
+                        <button className="cursor-pointer  relative border-2 border-neutral-200 p-2 px-3 rounded-lg ">
                             Cart
                             {lenCart > 0 && (
                                 <span className="text-lg absolute top-0 right-0 size-3 bg-red-500 rounded-full animate-bounce"></span>
@@ -45,27 +44,74 @@ export default function Navbar() {
     );
 }
 
+export function CartButtonProvider({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    const { cart, setCart } = useCart();
 
-export function CartButtonProvider({ children }: { children: React.ReactNode }) {
-    const { cart, setCart } = useCart()
+    const increaseCount = (id: number) => {
+        setCart((prev) => {
+            const currentItem = prev[id];
+            if (!currentItem) return prev;
+
+            const [count, product] = currentItem;
+            return {
+                ...prev,
+                [id]: [count + 1, product], // ✅ Correct key and structure
+            };
+        });
+    };
+
+    const decreaseCount = (id: number) => {
+        setCart((prev) => {
+            const currentItem = prev[id];
+            if (!currentItem) return prev;
+
+            const [count, product] = currentItem;
+
+            if (count <= 1) {
+                // ✅ Remove item from cart when count is 1 or less
+                const { [id]: _, ...rest } = prev;
+                return rest;
+            }
+
+            return {
+                ...prev,
+                [id]: [count - 1, product], // ✅ Decrease count
+            };
+        });
+    };
+
+    const total = () => {
+        const total = Object.values(cart).reduce(
+            (acc, [count, product]) => acc + count * product.price,
+            0
+        );
+        return total.toFixed(2);
+    };
+
     return (
         <Sheet>
-            <SheetTrigger asChild>
-                {children}
-            </SheetTrigger>
-            <SheetContent>
+            <SheetTrigger asChild>{children}</SheetTrigger>
+            <SheetContent className="">
                 <SheetHeader>
-                    <SheetTitle className="text-2xl" >Your Cart</SheetTitle>
+                    <SheetTitle className="text-2xl">Your Cart</SheetTitle>
                     <SheetDescription>
                         Finalize your order items & proceed to payments
                     </SheetDescription>
                 </SheetHeader>
-                <div>
-                    {Object.entries(cart).map((item) => {
-                        const product = item[1][1]
+                <div className="overflow-y-auto max-h-4/5">
+                    {Object.entries(cart).map(([idStr, [count, product]]) => {
+                        const id = Number(idStr); // ensures `id` is a number
+
                         return (
-                            <div key={item[0]} className="flex flex-col mx-5 w-full ">
-                                <div className="flex items-center justify-start gap-3">
+                            <div
+                                key={id}
+                                className="flex items-center justify-between gap-1 mx-4"
+                            >
+                                <div className="flex items-center gap-2">
                                     <Image
                                         src={product.images[0]}
                                         width={70}
@@ -73,12 +119,30 @@ export function CartButtonProvider({ children }: { children: React.ReactNode }) 
                                         alt={product.title}
                                         className="object-cover object-center rounded"
                                     />
-                                    <span className="">{product.title}</span>
-                                    <span>{item[0]}</span>
+                                    <span>{product.title}</span>
+                                </div>
+
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        className="cursor-pointer px-2 py-1 border rounded"
+                                        onClick={() => decreaseCount(product.id)}
+                                    >
+                                        −
+                                    </button>
+                                    <span className="w-6 text-center">{count}</span>
+                                    <button
+                                        className="cursor-pointer px-2 py-1 border rounded"
+                                        onClick={() => increaseCount(product.id)}
+                                    >
+                                        +
+                                    </button>
                                 </div>
                             </div>
-                        )
+                        );
                     })}
+                    <p className="text-right font-semibold text-lg mx-4">
+                        Total: ${total()}
+                    </p>
                 </div>
                 <SheetFooter>
                     <Button type="submit">Save changes</Button>
@@ -88,6 +152,5 @@ export function CartButtonProvider({ children }: { children: React.ReactNode }) 
                 </SheetFooter>
             </SheetContent>
         </Sheet>
-    )
+    );
 }
-
