@@ -65,71 +65,28 @@ export const verification = sqliteTable("verification", {
   ),
 });
 
-export const customerTable = sqliteTable("customer_table", {
-  id: integer("cust_id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  address: text("address"),
-  age: integer("age"),
-  phone: text("phone_number"),
-  createdAt: text("created_at")
-    .notNull()
-    .default(sql`CURRENT_DATE`),
-});
-
-export const customerBankDetails = sqliteTable("customer_bank_details", {
-  id: integer("cust_bank_details_id").primaryKey({ autoIncrement: true }),
-  cardNumber: text("card_number").notNull().unique(),
-  expiryDate: text("expiry_date").notNull(),
-  cvv: text("cvv").notNull(), // "YYYY-MM"
-
-  customerId: integer("cust_id")
-    .notNull()
-    .references(() => customerTable.id),
-});
-
-export const ordersTable = sqliteTable("orders", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  orderNumber: text("order_number").unique().notNull(),
-  orderDate: text("order_date").notNull(),
-  status: text("status").notNull(),
-  customerId: integer("cust_id")
-    .notNull()
-    .references(() => customerTable.id),
-});
-
 const orderStatuses = ["pending", "paid", "cancelled"] as const;
 type OrderStatus = (typeof orderStatuses)[number];
 
-export const pendingOrdersTable = sqliteTable("pending_orders", {
+export const orders = sqliteTable("orders", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  addedDate: text("order_added_date")
-    .notNull()
-    .default(sql`CURRENT_TIMESTAMP`),
+  orderNumber: text("order_number").unique().notNull(),
+  orderDate: text("order_date").notNull(), // ISO 8601 format preferred
   status: text("status", { enum: orderStatuses }).notNull(),
-  customerId: integer("cust_id")
+  userId: text("user_id")
     .notNull()
-    .references(() => customerTable.id, { onDelete: "cascade" }),
+    .references(() => user.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
 });
 
-export const customerRelations = relations(customerTable, ({ many }) => ({
-  bankDetails: many(customerBankDetails),
-  orders: many(ordersTable),
-}));
-
-export const bankDetailsRelations = relations(
-  customerBankDetails,
-  ({ one }) => ({
-    customer: one(customerTable, {
-      fields: [customerBankDetails.customerId],
-      references: [customerTable.id],
-    }),
-  })
-);
-
-export const orderRelations = relations(ordersTable, ({ one }) => ({
-  customer: one(customerTable, {
-    fields: [ordersTable.customerId],
-    references: [customerTable.id],
+export const orderRelations = relations(orders, ({ one }) => ({
+  user: one(user, {
+    fields: [orders.userId],
+    references: [user.id],
   }),
 }));

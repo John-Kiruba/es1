@@ -96,7 +96,7 @@ export function CartButtonProvider({
             const [count, product] = currentItem;
             return {
                 ...prev,
-                [id]: [count + 1, product], // ✅ Correct key and structure
+                [id]: [count + 1, product],
             };
         });
     };
@@ -109,14 +109,14 @@ export function CartButtonProvider({
             const [count, product] = currentItem;
 
             if (count <= 1) {
-                // ✅ Remove item from cart when count is 1 or less
+
                 const { [id]: _, ...rest } = prev;
                 return rest;
             }
 
             return {
                 ...prev,
-                [id]: [count - 1, product], // ✅ Decrease count
+                [id]: [count - 1, product],
             };
         });
     };
@@ -224,7 +224,7 @@ function PopOverProvider({ children }: { children: React.ReactNode }) {
                         <div className="grid items-center gap-4">
                             <Button
                                 onClick={signOut}
-                                variant="destructive" className="p-2 w-full">Sign Out</Button>
+                                variant="destructive" className="p-2 w-full cursor-pointer">Sign Out</Button>
                         </div>
 
                     </div>
