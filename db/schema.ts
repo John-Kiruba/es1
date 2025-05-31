@@ -90,3 +90,17 @@ export const orderRelations = relations(orders, ({ one }) => ({
     references: [user.id],
   }),
 }));
+
+export const orderItems = sqliteTable("order_items", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orderId: integer("order_id")
+    .notNull()
+    .references(() => orders.id, { onDelete: "cascade" }),
+  itemId: integer("item_id").notNull(),
+  title: text("title").notNull(),
+  image: text("image"),
+  quantity: integer("quantity")
+    .notNull()
+    .$default(() => 1),
+  price: integer("price").notNull(),
+});

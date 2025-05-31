@@ -137,6 +137,10 @@ export function CartButtonProvider({
             },
             body: JSON.stringify(cart),
         });
+
+        if (res.status !== 201) throw new Error("Server Error")
+
+
     };
 
     return (
