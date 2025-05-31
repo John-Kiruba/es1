@@ -1,8 +1,8 @@
 "use client";
-
+import { redirect, useRouter } from "next/navigation";
 import { useCart } from "../../context/cart-context";
 import { Button } from "@/components/ui/button";
-import es1 from "@/public/es1logo.jpg";
+import es1 from "@/public/es1.png";
 import {
     Sheet,
     SheetClose,
@@ -14,30 +14,67 @@ import {
     SheetTrigger,
 } from "@/components/ui/sheet";
 import Image from "next/image";
+import { authClient } from "@/app/lib/auth-client";
+import { ShoppingCart } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@radix-ui/react-label";
+import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover";
+import { signOut } from "@/app/api/auth/signout/signout";
+
 export default function Navbar() {
+    const { data: session } = authClient.useSession();
     const { cart } = useCart();
     const lenCart = Object.keys(cart).length;
     return (
-        <nav className="border-b-2 border-neutral-200 h-16 w-full">
+        <nav className="sticky top-0 left-0 z-10 shadow-md bg-white border-b-2 border-neutral-200 h-16 w-full">
             <div className="flex items-center justify-between h-full mx-5">
-                <div className="flex gap-4 text-xl ">
+                <div className="flex gap1 text-xl ">
                     <button>
-                        <Image src={es1} alt="esalesone logo" width={40} height={40} className="rounded-full object-cover" />
+                        <Image
+                            src={es1}
+                            alt="esalesone logo"
+                            width={40}
+                            height={40}
+                            className="rounded-full object-cover"
+                        />
                     </button>
                     <h2 className="italic">esalesone</h2>
                 </div>
                 <div className="flex items-center gap-4 font-semibold">
                     <CartButtonProvider>
                         <button className="cursor-pointer  relative border-2 border-neutral-200 p-2 px-3 rounded-lg ">
-                            Cart
+                            <ShoppingCart />
                             {lenCart > 0 && (
                                 <span className="text-lg absolute top-0 right-0 size-3 bg-red-500 rounded-full animate-bounce"></span>
                             )}
                         </button>
                     </CartButtonProvider>
-                    <button className="cursor-pointer border-2 border-neutral-200 p-2 px-3 rounded-lg ">
-                        Login
-                    </button>
+                    {session?.user ? (
+                        <PopOverProvider>
+                            <Button
+                                variant="outline"
+                                className="cursor-pointer border-2 border-neutral-200 size-12 rounded-full overflow-hidden p-0"
+                            >
+                                <Image
+                                    src={session.user.image || es1}
+                                    alt="Profile"
+                                    width={48}
+                                    height={48}
+                                    className="w-full h-full object-cover"
+                                />
+                            </Button>
+                        </PopOverProvider>
+
+
+                    ) : (
+
+                        <Button variant="outline"
+                            onClick={() => { redirect("/signin") }}
+                            className="cursor-pointer border-2 border-neutral-200 p-2 px-3 rounded-lg ">
+                            Login
+                        </Button>
+
+                    )}
                 </div>
             </div>
         </nav>
@@ -90,6 +127,16 @@ export function CartButtonProvider({
             0
         );
         return total.toFixed(2);
+    };
+
+    const orderBuy = async () => {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/order`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(cart),
+        });
     };
 
     return (
@@ -145,7 +192,9 @@ export function CartButtonProvider({
                     </p>
                 </div>
                 <SheetFooter>
-                    <Button type="submit">Save changes</Button>
+                    <Button onClick={orderBuy} type="submit">
+                        Buy
+                    </Button>
                     <SheetClose asChild>
                         <Button variant="outline">Close</Button>
                     </SheetClose>
@@ -153,4 +202,34 @@ export function CartButtonProvider({
             </SheetContent>
         </Sheet>
     );
+}
+
+
+
+function PopOverProvider({ children }: { children: React.ReactNode }) {
+    return (
+        <Popover >
+            <PopoverTrigger asChild>
+                {children}
+            </PopoverTrigger>
+            <PopoverContent className="bg-white p-3 rounded-2xl border border-neutral-200 shadow-sm w-52 mt-1 mr-2 ">
+                <div className="grid gap-4">
+                    <div className="space-y-2">
+                        <h4 className="leading-none font-medium">Hey!</h4>
+                        <p className="text-muted-foreground text-sm">
+                            @esalesone
+                        </p>
+                    </div>
+                    <div className="grid gap-2">
+                        <div className="grid items-center gap-4">
+                            <Button
+                                onClick={signOut}
+                                variant="destructive" className="p-2 w-full">Sign Out</Button>
+                        </div>
+
+                    </div>
+                </div>
+            </PopoverContent>
+        </Popover>
+    )
 }
