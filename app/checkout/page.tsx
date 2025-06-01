@@ -40,9 +40,9 @@ export default async function Order() {
         },
     });
 
-    if (!response.ok) {
-        redirect("/error"); // or handle error differently
-    }
+    // if (!response.ok) {
+    //     redirect("/error"); // or handle error differently
+    // }
 
     const { items, order }: OrderResponse = await response.json();
 
@@ -50,7 +50,7 @@ export default async function Order() {
         <div className="h-screen w-full m-0">
             <div className="flex items-center justify-center h-full w-[80%] mx-auto">
                 <div className="w-1/3 flex flex-col gap-4">
-                    {items.map((item) => (
+                    {items && items.map((item) => (
                         <span key={item.id}>
                             {item.title} {item.quantity}
                         </span>

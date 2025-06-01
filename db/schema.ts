@@ -113,11 +113,12 @@ export const orders = sqliteTable("orders", {
   ),
 });
 
-export const orderRelations = relations(orders, ({ one }) => ({
+export const ordersRelations = relations(orders, ({ one, many }) => ({
   user: one(user, {
     fields: [orders.userId],
     references: [user.id],
   }),
+  orderItems: many(orderItems),
 }));
 
 export const orderItems = sqliteTable("order_items", {
@@ -133,3 +134,10 @@ export const orderItems = sqliteTable("order_items", {
     .$default(() => 1),
   price: integer("price").notNull(),
 });
+
+export const orderItemRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderItems.orderId],
+    references: [orders.id],
+  }),
+}));

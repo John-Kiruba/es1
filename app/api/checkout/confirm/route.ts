@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db"; // your drizzle db instance
-import { orders } from "@/db/schema";
+import { db } from "@/db";
+import { orders, orderItems, user, userAddress, userCard } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-
-    // For example, body should include orderId, userId, etc.
     const { orderId, userId } = body;
 
     if (!orderId || !userId) {
@@ -17,7 +15,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Update order status to 'paid' and maybe store updated timestamp
+    // Update order status to 'paid'
     await db
       .update(orders)
       .set({
@@ -26,15 +24,35 @@ export async function POST(req: Request) {
       })
       .where(and(eq(orders.id, orderId), eq(orders.userId, userId)));
 
-    // Fetch updated order details with items (optional)
-    const updatedOrder = await db.query.orders.findFirst({
+    // Fetch order with all related data
+    const order = await db.query.orders.findFirst({
       where: eq(orders.id, orderId),
+      with: {
+        user: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+          with: {
+            userAddress: true,
+            // userCard: true,
+          },
+        },
+        orderItems: true,
+      },
     });
+
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
 
     return NextResponse.json({
       message: "Order payment updated to paid successfully",
-      order: updatedOrder,
-      // items: orderItems,
+      order,
     });
   } catch (error) {
     console.error("Error updating order payment:", error);
