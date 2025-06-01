@@ -13,7 +13,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useQuery } from "@tanstack/react-query";
 import z from "zod";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { Order } from "./page";
 
 const FormSchema = z.object({
     name: z.string().min(3),
@@ -27,7 +28,9 @@ const FormSchema = z.object({
 
 type TFormSchema = z.infer<typeof FormSchema>;
 
-export default function Checkout() {
+
+
+export default function Checkout({ order }: { order: Order }) {
     const { data, isLoading, isError } = useQuery<{
         name: string;
         email: string;
@@ -35,12 +38,12 @@ export default function Checkout() {
         cardNumber: string;
         expiryDate: string;
     }>({
-        queryKey: ['user-info'],
+        queryKey: ["user-info"],
         queryFn: async () => {
-            const res = await fetch('/api/user');
+            const res = await fetch("/api/user");
             if (!res.ok) throw new Error("Failed to fetch user info");
             return res.json();
-        }
+        },
     });
 
     const form = useForm<TFormSchema>({
@@ -51,19 +54,20 @@ export default function Checkout() {
             phoneNumber: "",
             cardNumber: "",
             expiryDate: "",
-            cvv: "", status: "approved",
+            cvv: "",
+            status: "approved",
         },
     });
 
     React.useEffect(() => {
         if (data) {
             form.reset({
-                name: data.name ?? '',
-                email: data.email ?? '',
-                phoneNumber: data.phoneNumber ?? '',
-                cardNumber: data.cardNumber ?? '',
-                expiryDate: data.expiryDate ?? '',
-                cvv: '', // never prefill CVV for security,
+                name: data.name ?? "",
+                email: data.email ?? "",
+                phoneNumber: data.phoneNumber ?? "",
+                cardNumber: data.cardNumber ?? "",
+                expiryDate: data.expiryDate ?? "",
+                cvv: "", // never prefill CVV for security
                 status: "approved",
             });
         }
@@ -71,28 +75,43 @@ export default function Checkout() {
 
     const router = useRouter();
 
-    const onSubmit = async (data: TFormSchema) => {
-        try {
-            console.log("Submitted:", data);
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-            if (data.status === "declined") {
-                alert("❌ Payment Declined");
+    const onSubmit = async (formData: TFormSchema) => {
+        try {
+            setIsSubmitting(true);
+
+            if (formData.status === "declined") {
+                throw new Error("Payment declined");
+            }
+
+            if (formData.status === "error") {
+                router.push("/payment-error");
                 return;
             }
 
-            if (data.status === "error") {
-                throw new Error("⚠️ Gateway Error Simulated");
+            if (formData.status === "approved") {
+                const response = await fetch("/api/checkout/confirm", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        orderId: order.id,
+                        userId: order.userId,
+                        ...formData,
+                    }),
+                });
+
+                if (!response.ok) throw new Error("Failed to update payment");
+
+                const data = await response.json();
+                alert("Payment approved and order updated!");
+                console.log("Order details:", data.order);
+                // TODO: redirect or show receipt here
             }
-
-            // Approved path — mock DB call
-            await new Promise((res) => setTimeout(res, 1000));
-            alert("✅ Payment Approved and saved successfully!");
-
-            // You can reset the form or clear card fields
-            form.reset({ ...data, cvv: "", cardNumber: "" });
-
-        } catch (err) {
-            alert((err as Error).message || "Unexpected error");
+        } catch (error) {
+            alert((error as Error).message);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -145,8 +164,6 @@ export default function Checkout() {
                     )}
                 />
 
-                {/* rest of your fields unchanged */}
-
                 <FormField
                     control={form.control}
                     name="cardNumber"
@@ -185,12 +202,15 @@ export default function Checkout() {
                         </FormItem>
                     )}
                 />
+
                 <FormField
                     control={form.control}
                     name="status"
                     render={({ field }) => (
                         <FormItem>
-                            <p className="text-sm font-medium text-gray-700 mb-1">Mock Payment Outcome</p>
+                            <p className="text-sm font-medium text-gray-700 mb-1">
+                                Mock Payment Outcome
+                            </p>
                             <div className="space-y-1">
                                 <label className="flex items-center space-x-2">
                                     <input
@@ -226,13 +246,12 @@ export default function Checkout() {
                 />
 
                 <button
-
-                    className="w-full hover:cursor-pointer text-center bg-blue-500 rounded-lg p-3 text-white "
+                    className="w-full hover:cursor-pointer text-center bg-blue-500 rounded-lg p-3 text-white"
                     type="submit"
+                    disabled={isSubmitting}
                 >
-                    Pay
+                    {isSubmitting ? "Processing..." : "Pay"}
                 </button>
-
             </form>
         </Form>
     );
