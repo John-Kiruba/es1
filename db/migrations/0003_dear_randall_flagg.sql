@@ -1,0 +1,1 @@
+ALTER TABLE `user_address` ADD `phone_number` integer;

@@ -140,7 +140,7 @@ export function CartButtonProvider({
 
         if (res.status !== 201) throw new Error("Server Error")
 
-
+        redirect("/checkout")
     };
 
     return (
