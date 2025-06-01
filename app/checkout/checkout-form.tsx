@@ -15,6 +15,8 @@ import { useQuery } from "@tanstack/react-query";
 import z from "zod";
 import { useRouter } from "next/navigation";
 import { Order } from "./page";
+import { toast } from "sonner";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const FormSchema = z.object({
     name: z.string().min(3),
@@ -76,17 +78,23 @@ export default function Checkout({ order }: { order: Order }) {
     const router = useRouter();
 
     const [isSubmitting, setIsSubmitting] = React.useState(false);
-
+    const [isDialogOpen, setIsDialogOpen] = React.useState(false);
     const onSubmit = async (formData: TFormSchema) => {
         try {
             setIsSubmitting(true);
 
             if (formData.status === "declined") {
-                throw new Error("Payment declined");
-            }
+                toast.error("Payment was declined. Please try another method.",
+                );
 
+                setTimeout(() => {
+                    setIsSubmitting(false);
+                }, 1500);
+
+                return;
+            }
             if (formData.status === "error") {
-                router.push("/payment-error");
+                setIsDialogOpen(true);
                 return;
             }
 
@@ -253,6 +261,21 @@ export default function Checkout({ order }: { order: Order }) {
                     {isSubmitting ? "Processing..." : "Pay"}
                 </button>
             </form>
+            <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Payment gateway error</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            There was an issue processing your payment. Please try again or contact support.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setIsDialogOpen(false)}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => setIsDialogOpen(false)}>Retry</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Form>
     );
 }
+
