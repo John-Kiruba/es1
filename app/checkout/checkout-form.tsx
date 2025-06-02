@@ -110,7 +110,7 @@ export default function Checkout({ order }: { order: Order }) {
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
     const [showDeclineAlert, setShowDeclineAlert] = React.useState(false);
-    const [orderDetails, setOrderDetails] = React.useState<updatedOrder | null>(null);
+    const [orderDetails, setOrderDetails] = React.useState(null);
     const [isOrderDialogOpen, setIsOrderDialogOpen] = React.useState(false);
     const onSubmit = async (formData: TFormSchema) => {
         try {
@@ -128,7 +128,7 @@ export default function Checkout({ order }: { order: Order }) {
 
             if (formData.status === "approved") {
 
-                console.log(order)
+                console.log("before consfirm fetch", order)
                 const response = await fetch("/api/checkout/confirm", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -335,7 +335,7 @@ export default function Checkout({ order }: { order: Order }) {
                 </div>
             </Form>
 
-            {/* <AlertDialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
+            <AlertDialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
                 <AlertDialogContent className="max-w-3xl">
                     <AlertDialogHeader>
                         <AlertDialogTitle>Order Details</AlertDialogTitle>
@@ -382,7 +382,7 @@ export default function Checkout({ order }: { order: Order }) {
                         </AlertDialogCancel>
                     </AlertDialogFooter>
                 </AlertDialogContent>
-            </AlertDialog> */}
+            </AlertDialog>
 
         </>
     );

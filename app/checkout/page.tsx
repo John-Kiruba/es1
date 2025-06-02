@@ -46,6 +46,7 @@ export default async function Order() {
 
     const { items, order }: OrderResponse = await response.json();
 
+
     return (
         <div className="h-screen w-full m-0">
             <div className="flex items-center justify-center h-full w-[80%] mx-auto">

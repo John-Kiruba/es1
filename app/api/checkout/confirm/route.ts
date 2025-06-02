@@ -7,13 +7,24 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { orderId, userId } = body;
-
+    console.log("body is fine ", orderId, userId);
     if (!orderId || !userId) {
       return NextResponse.json(
         { error: "Missing orderId or userId" },
         { status: 400 }
       );
     }
+    console.log("updating  ");
+
+    console.log("Incoming orderId", typeof orderId, orderId);
+    console.log("Incoming userId", typeof userId, userId);
+
+    const updated = await db
+      .update(orders)
+      .set({ status: "paid", updatedAt: new Date() })
+      .where(and(eq(orders.id, orderId), eq(orders.userId, userId)));
+
+    console.log("Update result", updated);
 
     // Update order status to 'paid'
     await db
@@ -23,7 +34,7 @@ export async function POST(req: Request) {
         updatedAt: new Date(),
       })
       .where(and(eq(orders.id, orderId), eq(orders.userId, userId)));
-
+    console.log("fetch related  ");
     // Fetch order with all related data
     const order = await db.query.orders.findFirst({
       where: eq(orders.id, orderId),
@@ -45,7 +56,7 @@ export async function POST(req: Request) {
         orderItems: true,
       },
     });
-
+    console.log("order found  ");
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }

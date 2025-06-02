@@ -31,6 +31,13 @@ export const userAddress = sqliteTable("user_address", {
   zipCode: integer("zip_code").notNull(),
 });
 
+export const userRelations = relations(user, ({ one }) => ({
+  userAddress: one(userAddress, {
+    fields: [user.id],
+    references: [userAddress.userId],
+  }),
+}));
+
 // card.ts — only for mocking
 export const userCard = sqliteTable("user_card", {
   id: integer("id").primaryKey({ autoIncrement: true }),
