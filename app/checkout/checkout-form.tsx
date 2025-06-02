@@ -110,7 +110,7 @@ export default function Checkout({ order }: { order: Order }) {
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
     const [showDeclineAlert, setShowDeclineAlert] = React.useState(false);
-    const [orderDetails, setOrderDetails] = React.useState(null);
+    const [orderDetails, setOrderDetails] = React.useState<updatedOrder | null>(null);
     const [isOrderDialogOpen, setIsOrderDialogOpen] = React.useState(false);
     const onSubmit = async (formData: TFormSchema) => {
         try {
@@ -147,9 +147,9 @@ export default function Checkout({ order }: { order: Order }) {
 
                 toast.success("Payment success. Thank you!.");
 
-                // setOrderDetails(data.order);
-                // console.log("stat order", orderDetails)
-                // setIsOrderDialogOpen(true);
+                setOrderDetails(data.order);
+                console.log("stat order", orderDetails)
+                setIsOrderDialogOpen(true);
 
                 setIsSubmitting(false);
             }
