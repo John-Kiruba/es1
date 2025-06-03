@@ -30,6 +30,7 @@ import {
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Ban, Terminal } from "lucide-react";
 import { Table, TableCaption, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { useCart } from "../context/cart-context";
 
 const FormSchema = z.object({
     name: z.string().min(3),
@@ -107,7 +108,7 @@ export default function Checkout({ order }: { order: Order }) {
     }, [data, form]);
 
     const router = useRouter();
-
+    const { setCart } = useCart();
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
     const [showDeclineAlert, setShowDeclineAlert] = React.useState(false);
@@ -386,7 +387,7 @@ export default function Checkout({ order }: { order: Order }) {
                     )}
 
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => { setIsOrderDialogOpen(false); router.push("/home") }}>
+                        <AlertDialogCancel onClick={() => { setIsOrderDialogOpen(false); setCart({}); router.push("/home") }}>
                             Close
                         </AlertDialogCancel>
                     </AlertDialogFooter>
