@@ -28,8 +28,8 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Ban, Table, Terminal } from "lucide-react";
-import { TableCaption, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Ban, Terminal } from "lucide-react";
+import { Table, TableCaption, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 
 const FormSchema = z.object({
     name: z.string().min(3),
@@ -44,23 +44,24 @@ const FormSchema = z.object({
 });
 
 type TFormSchema = z.infer<typeof FormSchema>;
-type OrderItem = {
+interface OrderItem {
     id: number;
     title: string;
     quantity: number;
     price: number;
-};
+}
 
 interface updatedOrder {
     id: number;
-    createdAt: Date | null;
-    updatedAt: Date | null;
+    createdAt: string | null;
+    updatedAt: string | null;
     userId: string;
     status: string;
     orderNumber: string;
     orderDate: string;
-    items: OrderItem[];
+    orderItems: OrderItem[];
 }
+
 
 export default function Checkout({ order }: { order: Order }) {
     const { data, isLoading, isError } = useQuery<{
@@ -148,7 +149,7 @@ export default function Checkout({ order }: { order: Order }) {
                 toast.success("Payment success. Thank you!.");
 
                 setOrderDetails(data.order);
-                console.log("stat order", orderDetails)
+
                 setIsOrderDialogOpen(true);
 
                 setIsSubmitting(false);
@@ -160,7 +161,7 @@ export default function Checkout({ order }: { order: Order }) {
             setIsSubmitting(false);
         }
     };
-
+    console.log("stat order", orderDetails)
     if (isLoading) return <div>Loading user info...</div>;
     if (isError) return <div>Error loading user info</div>;
 
@@ -322,6 +323,9 @@ export default function Checkout({ order }: { order: Order }) {
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
+
+
+
                 <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-[90%] max-w-lg">
                     {showDeclineAlert && (
                         <Alert variant="destructive" className="shadow-lg">
@@ -344,7 +348,7 @@ export default function Checkout({ order }: { order: Order }) {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
 
-                    {orderDetails && Array.isArray(orderDetails.items) && (
+                    {orderDetails ? (
                         <Table>
                             <TableCaption>Details for order #{orderDetails.id}</TableCaption>
                             <TableHeader>
@@ -356,7 +360,7 @@ export default function Checkout({ order }: { order: Order }) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {orderDetails.items.map((item) => (
+                                {orderDetails.orderItems.map((item) => (
                                     <TableRow key={item.id}>
                                         <TableCell>{item.title}</TableCell>
                                         <TableCell>{item.quantity}</TableCell>
@@ -369,15 +373,20 @@ export default function Checkout({ order }: { order: Order }) {
                                         Grand Total
                                     </TableCell>
                                     <TableCell className="font-bold">
-                                        ${orderDetails.items.reduce((acc, i) => acc + i.price * i.quantity, 0).toFixed(2)}
+                                        $
+                                        {orderDetails.orderItems
+                                            .reduce((acc, i) => acc + i.price * i.quantity, 0)
+                                            .toFixed(2)}
                                     </TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
+                    ) : (
+                        <p>No order items found.</p>
                     )}
 
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setIsOrderDialogOpen(false)}>
+                        <AlertDialogCancel onClick={() => { setIsOrderDialogOpen(false); router.push("/home") }}>
                             Close
                         </AlertDialogCancel>
                     </AlertDialogFooter>
